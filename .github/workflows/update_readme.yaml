@@ -1,9 +1,8 @@
 name: README Update Automation
 
 on:
-  pull_request
-  # pull_request:
-    # types: [closed]
+  pull_request:
+    types: [closed]
 
 jobs:
   update-readme:
