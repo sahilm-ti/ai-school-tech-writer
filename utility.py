@@ -5,7 +5,7 @@ from textwrap import dedent
 from github.ContentFile import ContentFile
 from github.PullRequest import PullRequest
 from github.Repository import Repository
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 from pydantic.v1 import SecretStr
@@ -17,6 +17,23 @@ def get_updated_readme_content(
     commit_messages: list[str],
     api_key: str,
 ) -> str:
+    prompt = PromptTemplate.from_template(
+        template=dedent(
+            """
+                You are a senior software devloper.
+                You are working on a project with a team of developers.
+                Your task is to update the README file of the project, according to the changes made in a pull request.
+                You will be provided with
+                1. A list of changed files in the pull request, including the file name and the changes made.
+                2. The current content of the README file.
+                3. The commit messages associated with the pull request.
+
+                You need to generate the updated README file content based on the provided information.
+                You also need to provide a reason for your changes in the README file.
+                File changes:\n{diffs}\n\nReadme Content:\n{readme_content}\n\nCommit Messages:\n{commit_messages}
+                """
+        ),
+    )
     prompt = ChatPromptTemplate.from_messages(
         [
             (
@@ -30,7 +47,6 @@ def get_updated_readme_content(
                         1. A list of changed files in the pull request, including the file name and the changes made.
                         2. The current content of the README file.
                         3. The commit messages associated with the pull request.
-
                         You need to generate the updated README file content based on the provided information.
                         You also need to provide a reason for your changes in the README file.
                     """
@@ -55,12 +71,10 @@ def get_updated_readme_content(
     structured_llm = chat_model.with_structured_output(PromptResponse)
 
     response = structured_llm.invoke(
-        prompt.invoke(
-            {
-                "diffs": formatted_diffs,
-                "readme_content": decoded_readme,
-                "commit_messages": formatted_commit_messages,
-            },
+        prompt.format(
+            diffs=formatted_diffs,
+            readme_content=decoded_readme,
+            commit_messages=formatted_commit_messages,
         )
     )
     print(f"Received response: {response}")
