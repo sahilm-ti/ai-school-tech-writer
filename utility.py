@@ -7,7 +7,7 @@ from github.PullRequest import PullRequest
 from github.Repository import Repository
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic.v1 import SecretStr
 
 
@@ -77,9 +77,7 @@ def update_readme_and_create_pr(
     commit_sha = os.environ["COMMIT_SHA"]
     main_branch = repo.get_branch("main")
     new_branch_name = f"update-readme-{commit_sha[:7]}"
-    new_branch = repo.create_git_ref(
-        ref=f"refs/heads/{new_branch_name}", sha=main_branch.commit.sha
-    )
+    repo.create_git_ref(ref=f"refs/heads/{new_branch_name}", sha=main_branch.commit.sha)
 
     repo.update_file(
         path="README.md",
@@ -100,5 +98,7 @@ def update_readme_and_create_pr(
 
 
 class PromptResponse(BaseModel):
-    updated_readme: str
-    reason: str
+    updated_readme: str = Field(..., description="The updated README content")
+    reason: str = Field(
+        ..., description="The reason for the changes made in the README"
+    )
