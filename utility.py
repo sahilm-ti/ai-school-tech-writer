@@ -5,7 +5,7 @@ from textwrap import dedent
 from github.ContentFile import ContentFile
 from github.PullRequest import PullRequest
 from github.Repository import Repository
-from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.pydantic_v1 import BaseModel, Field, SecretStr
 
@@ -25,6 +25,7 @@ def get_updated_readme_content(
                         You are a senior software devloper.
                         You are working on a project with a team of developers.
                         Your task is to update the README file of the project, according to the changes made in a pull request.
+                        You shouldn't add a list of changed files to the README file, you need to update the content of the README file to reflect the code in the repository in general.
                         You will be provided with
                         1. A list of changed files in the pull request, including the file name and the changes made.
                         2. The current content of the README file.
@@ -61,7 +62,6 @@ def get_updated_readme_content(
             "commit_messages": formatted_commit_messages,
         }
     )
-    print(f"Prompt with input: {prompt_with_input}")
 
     response = structured_llm.invoke(prompt_with_input)
     print(f"Received response: {response}")
